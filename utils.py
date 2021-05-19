@@ -107,12 +107,9 @@ def calulate_priors(user_graph, product_graph):
     
     feature_config = {'MNR': '+1', 'PR':'+1', 'NR':'+1', 'avgRD':'+1', 'ERD':'-1', 'ETG':'-1', \
 		'BST':'+1', 'RD':'+1', 'EXT':'+1', 'DEV':'+1','ETF':'+1', 'ISR': '+1'}
-    review_feature_list = ['RD', 'EXT', 'EXT', 'DEV', 'ETF', 'ISR']
-    user_feature_list = ['MNR', 'PR', 'NR', 'avgRD', 'BST', 'ERD', 'ETG']
-    product_feature_list = ['MNR', 'PR', 'NR', 'avgRD', 'ERD', 'ETG']
-    user_priors = calculateNodePriors(user_feature_list, UserFeatures, feature_config)
-    prod_priors = calculateNodePriors(product_feature_list, ProdFeatures, feature_config)
-    review_priors = calculateNodePriors(review_feature_list, ReviewFeatures, feature_config)
+    user_priors = calculateNodePriors(['MNR', 'PR', 'NR', 'avgRD', 'BST', 'ERD', 'ETG'], UserFeatures, feature_config)
+    prod_priors = calculateNodePriors(['MNR', 'PR', 'NR', 'avgRD', 'ERD', 'ETG'], ProdFeatures, feature_config)
+    review_priors = calculateNodePriors(['RD', 'EXT', 'EXT', 'DEV', 'ETF', 'ISR'], ReviewFeatures, feature_config)
     priors = [user_priors, review_priors, prod_priors]
     return priors
 
@@ -170,14 +167,14 @@ def run_detectors(user_graph, product_graph, new_reviews, detect_q, top_k_thresh
     top_k = int(len(sort_spam_probs)*top_k_threshold)
     
     top_k_reviews = [review[0] for review in sort_spam_probs[:top_k]]
-    print(new_reviews)
+    #print(new_reviews)
     for review in top_k_reviews:
         if review not in new_reviews:
             top_k_reviews.remove(review)
         else:
             print(review)
 
-    print('top k is ', len(top_k_reviews))
+    #print('top k is ', len(top_k_reviews))
     
     return spam_review_probs, sum_review_probs, detector_review_probs, top_k_reviews, product_graph 
 

@@ -9,9 +9,6 @@ sys.path.insert(0, os.path.abspath('../'))
 date_time_format_str = '%Y-%m-%d'
 
 def MNR(data, data_type='user'):
-	
-	#	Normalized maximum number of reviews in a day for a user/product
-	
 	feature = {}
 	for o_id, reviews in data.items():
 		frequency = {}
@@ -43,7 +40,6 @@ def PR_NR(data):
 	return feature
 
 def avgRD_user(user_data, product_data):
-	#	Average rating deviation of each user / product.
 	p_avg = {}
 	for o_id, reviews in product_data.items():
 		p_avg[o_id] = np.mean(np.array([review[1] for review in reviews]))
@@ -53,7 +49,6 @@ def avgRD_user(user_data, product_data):
 	return u_avgRD
 
 def avgRD_prod(product_data):
-	#	Average rating deviation of each user / product.
 	p_avg = {}
 	for o_id, reviews in product_data.items():
 		p_avg[o_id] = np.mean(np.array([review[1] for review in reviews]))
@@ -65,9 +60,8 @@ def avgRD_prod(product_data):
 	return p_avgRD
 
 def BST(user_data):
-	# Burstiness of reviews by users. Spammers are often short term
 	bst = {}
-	tau = 28.0  # 28 days
+	tau = 28.0  
 	for o_id, reviews in user_data.items():
 		post_dates = sorted([datetime.strptime(review[3], date_time_format_str) for review in reviews])
 		delta_days = (post_dates[-1] - post_dates[0]).days
@@ -78,7 +72,6 @@ def BST(user_data):
 	return bst
 
 def ERD(data):
-	#	Entropy of the rating distribution of each user (product)
 	erd = {}
 	for o_id, reviews in data.items():
 		ratings = [review[1] for review in reviews]
@@ -89,7 +82,6 @@ def ERD(data):
 	return erd
 
 def ETG(data):
-	#	Entropy of the gaps between any two consecutive ratings.
 	etg = {}
 	edges = [0, 0.5, 1, 4, 7, 13, 33]
 	for o_id, reviews in data.items():
@@ -117,7 +109,6 @@ def ETG(data):
 	return etg
 
 def RD(product_data):
-	# Calculate the deviation of the review ratings to the product average.
 	rd = {}
 	for o_id, reviews in product_data.items():
 		avg = np.mean(np.array([review[1] for review in reviews]))
@@ -126,7 +117,6 @@ def RD(product_data):
 	return rd
 
 def EXT(product_data):
-	#	Whether a rating is extreme or not
 	ext = {}
 	for o_id, reviews in product_data.items():
 		for review in reviews:
@@ -137,9 +127,6 @@ def EXT(product_data):
 	return ext
 
 def DEV(product_data):
-	#	Deviation of each rating from the average rating of the target product.
-	#	Need to use "recursive minimal entropy partitioning" to find beta_1
-
 	beta_1 = 0.63
 	dev = {}
 	for o_id, reviews in product_data.items():
@@ -153,9 +140,6 @@ def DEV(product_data):
 	return dev
 
 def ETF(product_data):
-	#	Binary feature: 0 if ETF_prime <= beta_3, 1 otherwise.
-	#	ETF_prime = 1 - (date of last review of user i on product p from the date of the first review of the product / 7 months)
-	
 	beta_3 = 0.69
 
 	first_time_product = {}
@@ -185,7 +169,6 @@ def ETF(product_data):
 	return etf
 
 def ISR(user_data):
-	#	Check if a user posts only one review
 	isr = {}
 	for o_id, reviews in user_data.items():
 		# go through all review of this user
@@ -197,9 +180,6 @@ def ISR(user_data):
 	return isr
 
 def add_feature(existing_features, new_features, feature_names):
-	#	Add or update feature(s) of a set of nodes of the same type to the existing feature(s).
-	#	If a feature of a node is already is existing_features, then the new values will replace the existing ones.
-	
 	for k, v in new_features.items():
 		if k not in existing_features:
 			existing_features[k] = dict()
@@ -210,60 +190,56 @@ def add_feature(existing_features, new_features, feature_names):
 				existing_features[k][feature_names[i]] = v
 
 def construct_all_features(user_data, prod_data):
-	#	Main entry to feature construction.
-	
 	UserFeatures = {}
 	ProdFeatures = {}
 
-	uf = MNR(user_data, data_type='user')
-	add_feature(UserFeatures, uf, ["MNR"])
-	pf = MNR(prod_data, data_type='prod')
-	add_feature(ProdFeatures, pf, ["MNR"])
+	user_feature = MNR(user_data, data_type='user')
+	add_feature(UserFeatures, user_feature, ["MNR"])
+	product_feature = MNR(prod_data, data_type='prod')
+	add_feature(ProdFeatures, product_feature, ["MNR"])
 
-	uf = PR_NR(user_data)
-	add_feature(UserFeatures, uf, ["PR", "NR"])
-	pf = PR_NR(prod_data)
-	add_feature(ProdFeatures, pf, ["PR", "NR"])
+	user_feature = PR_NR(user_data)
+	add_feature(UserFeatures, user_feature, ["PR", "NR"])
+	product_feature = PR_NR(prod_data)
+	add_feature(ProdFeatures, product_feature, ["PR", "NR"])
 
-	uf = avgRD_user(user_data, prod_data)
-	add_feature(UserFeatures, uf, ["avgRD"])
-	pf = avgRD_prod(prod_data)
-	add_feature(ProdFeatures, pf, ["avgRD"])
+	user_feature = avgRD_user(user_data, prod_data)
+	add_feature(UserFeatures, user_feature, ["avgRD"])
+	product_feature = avgRD_prod(prod_data)
+	add_feature(ProdFeatures, product_feature, ["avgRD"])
 	
-	uf = BST(user_data)
-	add_feature(UserFeatures, uf, ["BST"])
+	user_feature = BST(user_data)
+	add_feature(UserFeatures, user_feature, ["BST"])
 
-	uf = ERD(user_data)
-	add_feature(UserFeatures, uf, ["ERD"])
-	pf = ERD(prod_data)
-	add_feature(ProdFeatures, pf, ["ERD"])
+	user_feature = ERD(user_data)
+	add_feature(UserFeatures, user_feature, ["ERD"])
+	product_feature = ERD(prod_data)
+	add_feature(ProdFeatures, product_feature, ["ERD"])
 	
-	uf = ETG(user_data)
-	add_feature(UserFeatures, uf, ["ETG"])
-	pf = ETG(prod_data)
-	add_feature(ProdFeatures, pf, ["ETG"])
+	user_feature = ETG(user_data)
+	add_feature(UserFeatures, user_feature, ["ETG"])
+	product_feature = ETG(prod_data)
+	add_feature(ProdFeatures, product_feature, ["ETG"])
 
 	ReviewFeatures = {}
-	rf = RD(prod_data)
-	add_feature(ReviewFeatures, rf, ['RD'])
+	review_feature = RD(prod_data)
+	add_feature(ReviewFeatures, review_feature, ['RD'])
 
-	rf = EXT(prod_data)
-	add_feature(ReviewFeatures, rf, ['EXT'])
+	review_feature = EXT(prod_data)
+	add_feature(ReviewFeatures, review_feature, ['EXT'])
 
-	rf = DEV(prod_data)
-	add_feature(ReviewFeatures, rf, ['DEV'])
+	review_feature = DEV(prod_data)
+	add_feature(ReviewFeatures, review_feature, ['DEV'])
 
-	rf = ETF(prod_data)
-	add_feature(ReviewFeatures, rf, ['ETF'])
+	review_feature = ETF(prod_data)
+	add_feature(ReviewFeatures, review_feature, ['ETF'])
 
-	rf = ISR(user_data)
-	add_feature(ReviewFeatures, rf, ['ISR'])
+	review_feature = ISR(user_data)
+	add_feature(ReviewFeatures, review_feature, ['ISR'])
 
 	return UserFeatures, ProdFeatures, ReviewFeatures
 
 def calculateNodePriors(feature_names, features_py, when_suspicious):
-	#	Calculate priors of nodes P(y=1|node) using node features.
-	
 	priors = {}
 	for node_id, v in features_py.items():
 		priors[node_id] = 0

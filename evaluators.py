@@ -191,14 +191,7 @@ def compute_loss(cost, spam_review_probs):
 	return acc/len(cost)
 
 def nor_priors(priors):
-	"""
-	Normalize the node priors for GANG
-	:return:
-	"""
 	new_upriors, new_rpriors, new_ppriors = priors
-
-	# normalize the node priors to (0,1)
-	# if we normalize the prior, we need to set nor_flg to True for the gang model
 	ranked_upriors = [(user, new_upriors[user]) for user in new_upriors.keys()]
 	ranked_upriors = sorted(ranked_upriors, reverse=True, key=lambda x: x[1])
 	ranked_rpriors = [(user, new_rpriors[user]) for user in new_rpriors.keys()]
